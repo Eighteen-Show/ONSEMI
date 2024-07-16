@@ -1,162 +1,400 @@
 {% extends "base.html" %}
 {% load static %}
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 {% block title %}
   {{ product.name }}
 {% endblock %}
 
 {% block content %}
 {{ block.super }}
-  <div class="product-detail">
+<style>
+  .cart-like-section {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Adjust the spacing between buttons as needed */
+}
+
+#like-product-button {
+    background-color: #ff4757;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top:30px;
+}
+
+#like-product-button:hover {
+    background-color: #e04040;
+}
+
+.cart-form .button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 14px 20px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.cart-form .button:hover {
+    background-color: #218838;
+}
+
+.comments{
+  align-items: center;
+  text-align:center;
+  background-color:#f9f9f9;
+}
+
+.form-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+textarea{
+  width:800px;
+  height:400px;
+}
+
+h2{
+  margin:0px;
+}
+li{
+  text-align:center;
+}
+
+#toggle-reviews{
+  margin-top:50px;
+  padding:14px 20px;
+  font-family: 'KCC-Hanbit';
+}
+#comments-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#comments-table th, #comments-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+#comments-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.custom-star {
+  vertical-align: middle;
+}
+
+.short-content {
+  display: inline;
+}
+
+.full-content {
+  display: none;
+}
+
+#comments-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#comments-table th, #comments-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+#comments-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0,0,0);
+  background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 10% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  position: relative;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  position: absolute;
+  top: 10px;
+  right: 20px;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+</style>
+<div class="product-detail">
     <img src="{% if product.image %}{{ product.image.url }}{% else %}
     {% static "img/no_image.png" %}{% endif %}" class="product-image">
     <div class="product-info">
-      <h1>{{ product.name }}</h1>
-      <h2>
-        <a href="{{ product.category.get_absolute_url }}">
-          {{ product.category }}
-        </a>
-      </h2>
-      <p class="price">{{ product.price }}원</p>
-      <form action="{% url "cart_app:cart_add" product.id %}" method="post" class="cart-form">
-        {{ cart_product_form }}
-        {% csrf_token %}
-        <input type="submit" value="장바구니에 담기" class="button">
-      </form>
-      <p>평점: 
+        <h1>{{ product.name }}</h1>
+        <h2>
+            <a href="{{ product.category.get_absolute_url }}">
+                {{ product.category }}
+            </a>
+        </h2>
+        <div class="star">
+         
         {% for i in "12345" %}
-          {% if i <= average_rating|stringformat:"i" %}
-            <i class="fas fa-star"></i>
-          {% else %}
-            <i class="far fa-star"></i>
-          {% endif %}
+        {% if i <= average_rating|stringformat:"i" %}
+        <svg class="custom-star" fill="red" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24px" height="24px">
+            <path d="M0 0h24v24H0z" fill="none"/>
+            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+        </svg>
+        {% else %}
+        <svg class="custom-star" fill="gray" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24px" height="24px">
+            <path d="M0 0h24v24H0z" fill="none"/>
+            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+        </svg>
+        {% endif %}
         {% endfor %}
-        ({{ average_rating|floatformat:1 }}점)
+      <p>평점:
+      {% for i in "12345" %}
+          {% if i <= average_rating|stringformat:"i" %}
+          <i class="fas fa-star"></i>
+          {% else %}
+          <i class="far fa-star"></i>
+          {% endif %}
+      {% endfor %}
+      ({{ average_rating|floatformat:1 }}점)
       </p>
-      {{ product.description|linebreaks }}
-      {% if stock_alert %}
+      </div>
+        <p class="price">{{ product.price }}원</p>
+        
+        <div class="cart-like-section">
+            <form action="{% url "cart_app:cart_add" product.id %}" method="post" class="cart-form">
+                {{ cart_product_form }}
+                {% csrf_token %}
+                <input type="submit" value="장바구니에 담기" class="button">
+            </form>
+            <!-- 상품 좋아요 -->
+            <form action="{% url 'shop_app:like_product' product.id %}" method="post" id="like-product-form">
+                {% csrf_token %}
+                <button type="submit" id="like-product-button" class="button"><span class="material-symbols-outlined">
+                  thumb_up
+                  </span> <span id="product-likes">{{ product.total_likes }}</span></button>
+            </form>
+            <button id="toggle-reviews" class="button">후기 작성</button>
+        </div>
+       
+        {{ product.description|linebreaks }}
+        {% if stock_alert %}
         <p class="stock-alert">재고가 {{ product.stock }}개 남았습니다.</p>
-      {% endif %}
+        {% endif %}
     </div>
-  </div>
-
-  <!-- 상품 좋아요 -->
-  <h2>좋아요</h2>
-  <form action="{% url 'shop_app:like_product' product.id %}" method="post" id="like-product-form">
-      {% csrf_token %}
-      <button type="submit" id="like-product-button">좋아요 <span id="product-likes">{{ product.total_likes }}</span></button>
-  </form>
-
-  <div class="comments">
+</div>
+<div id="reviews-container" style="display: none;">
+<div class="comments">
     <h2>후기</h2>
     {% if has_purchased %}
     <form action="{% url 'shop_app:add_comment' product.id product.slug %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        <div>
+        <div class="form-group">
             <label for="{{ comment_form.content.id_for_label }}">후기</label>
             {{ comment_form.content }}
-          </div>
-          <div>
+        </div>
+        <div class="form-group">
             <label for="{{ comment_form.rating.id_for_label }}">별점</label>
             {{ comment_form.rating }}
-          </div>
-          <div>
+        </div>
+        <div class="form-group">
             <label for="{{ comment_form.image.id_for_label }}">사진</label>
             {{ comment_form.image }}
         </div>
         <button type="submit">후기 등록</button>
     </form>
     {% else %}
-      <p>이 제품을 구매한 사용자만 댓글을 작성할 수 있습니다.</p>
+    <p>이 제품을 구매한 사용자만 댓글을 작성할 수 있습니다.</p>
     {% endif %}
-    
-    <ul>
-        {% for comment in comments %}
-              <li>
-                  <strong>{{ comment.user.username }}</strong> | {{ comment.created_at|date:"Y년 n월 j일 A g:i" }}
-                  <p>{{ comment.content }}</p>
-                  {% if comment.image %}
-                  <img src="{{ comment.image.url }}" alt="Comment Image" style="max-width: 100px;">
-                  {% endif %}
-                  <p>별점: 
-                    {% for i in "12345" %}
-                      {% if i <= comment.rating|stringformat:"i" %}
-                        <i class="fas fa-star"></i>
-                      {% else %}
-                        <i class="far fa-star"></i>
-                      {% endif %}
-                    {% endfor %}
-                    ({{ comment.rating }}점)
-                  </p>
-                  <form action="{% url 'shop_app:like_comment' comment.id %}" method="post" class="like-comment-form">
-                      {% csrf_token %}
-                      <button type="submit" class="like-comment-button" data-comment-id="{{ comment.id }}">
-                          좋아요 <span class="comment-likes">{{ comment.total_likes }}</span>
-                      </button>
-                  </form>
-                  <form action="{% url 'shop_app:delete_comment' comment.id %}" method="post" style="display:inline;">
-                      {% csrf_token %}
-                      <button type="submit">댓글 삭제</button>
-                  </form>
-                  <button onclick="document.getElementById('reply-form-{{ comment.id }}').style.display='block'">답글</button>
-                  <form id="reply-form-{{ comment.id }}" action="{% url 'shop_app:reply_comment' comment.id %}" method="post" style="display:none;">
-                      {% csrf_token %}
-                      {{ reply_form.as_p }}
-                      <button type="submit">답글 작성</button>
-                  </form>
-                  {% for reply in comment.replies.all %}
-                      <ul>
-                          <li>
-                              <strong>{{ reply.user.username }}</strong> | {{ reply.created_at|date:"Y년 n월 j일 A g:i" }}
-                              <p>{{ reply.content }}</p>
-                              <form action="{% url 'shop_app:delete_comment' reply.id %}" method="post" style="display:inline;">
-                                  {% csrf_token %}
-                                  <button type="submit">댓글 삭제</button>
-                              </form>
-                          </li>
-                      </ul>
-                  {% endfor %}
-              </li>
-          {% endfor %}
-      </ul>
-    </div>
+</div>
+</div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const likeProductForm = document.getElementById('like-product-form');
-        const likeProductButton = document.getElementById('like-product-button');
-        likeProductForm.addEventListener('submit', function(event) {
+<table id="comments-table">
+  <thead>
+    <tr>
+      <th>NO</th>
+      <th>상품 이미지</th>
+      <th>작성자</th>
+      <th>날짜</th>
+      <th>평가점수</th>
+      <th>내용</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for comment in comments %}
+    <tr class="comment-row" data-content="{{ comment.content }}" data-username="{{ comment.user.username }}" data-date="{{ comment.created_at|date:"Y-m-d" }}" data-rating="{{ comment.rating }}" data-comment-id="{{ comment.id }}">
+      <td>{{ forloop.counter }}</td>
+      <td>
+        {% if comment.image %}
+        <img src="{{ comment.image.url }}" alt="Comment Image" style="width: 80px; height: 80px;">
+        {% else %}
+        <span>이미지 없음</span>
+        {% endif %}
+      </td>
+      <td>{{ comment.user.username }}</td>
+      <td>{{ comment.created_at|date:"Y-m-d" }}</td>
+      <td>
+        {% for i in "12345" %}
+        {% if i <= comment.rating|stringformat:"i" %}
+        <svg class="custom-star" fill="gold" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16px" height="16px">
+          <path d="M0 0h24v24H0z" fill="none"/>
+          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+        </svg>
+        {% else %}
+        <svg class="custom-star" fill="gray" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16px" height="16px">
+          <path d="M0 0h24v24H0z" fill="none"/>
+          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+        </svg>
+        {% endif %}
+        {% endfor %}
+      </td>
+      <td class="comment-content">{{ comment.content|truncatechars:20 }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div id="myModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <div id="modal-details"></div>
+    <form id="delete-comment-form" method="post">
+      {% csrf_token %}
+      <button type="submit">댓글 삭제</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const likeProductForm = document.getElementById('like-product-form');
+    const likeProductButton = document.getElementById('like-product-button');
+    likeProductForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        fetch(likeProductForm.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': "{{ csrf_token }}",
+            },
+            body: new URLSearchParams(new FormData(likeProductForm))
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('product-likes').textContent = data.likes;
+        });
+    });
+
+    document.querySelectorAll('.like-comment-form').forEach(function(form) {
+        form.addEventListener('submit', function(event) {
             event.preventDefault();
-            fetch(likeProductForm.action, {
+            const commentId = form.querySelector('.like-comment-button').dataset.commentId;
+            fetch(`/shop/like_comment/${commentId}/`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': "{{ csrf_token }}",
                 },
-                body: new URLSearchParams(new FormData(likeProductForm))
+                body: new URLSearchParams(new FormData(form))
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById('product-likes').textContent = data.likes;
-            });
-        });
-
-        document.querySelectorAll('.like-comment-form').forEach(function(form) {
-            form.addEventListener('submit', function(event) {
-                event.preventDefault();
-                const commentId = form.querySelector('.like-comment-button').dataset.commentId;
-                fetch(`/shop/like_comment/${commentId}/`, {  // 여기에서 URL을 동적으로 구성
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': "{{ csrf_token }}",
-                    },
-                    body: new URLSearchParams(new FormData(form))
-                })
-                .then(response => response.json())
-                .then(data => {
-                    form.querySelector('.comment-likes').textContent = data.likes;
-                });
+                form.querySelector('.comment-likes').textContent = data.likes;
             });
         });
     });
-  </script>
+
+    document.getElementById('toggle-reviews').addEventListener('click', function() {
+        var reviewsContainer = document.getElementById('reviews-container');
+        if (reviewsContainer.style.display === 'none' || reviewsContainer.style.display === '') {
+            reviewsContainer.style.display = 'block';
+            this.textContent = '작성 취소';
+        } else {
+            reviewsContainer.style.display = 'none';
+            this.textContent = '후기 작성';
+        }
+    });
+
+    document.getElementById('comments-table').addEventListener('click', function(event) {
+        if (event.target.closest('td.comment-content')) {
+            const row = event.target.closest('.comment-row');
+            const content = row.dataset.content;
+            const username = row.dataset.username;
+            const date = row.dataset.date;
+            const rating = row.dataset.rating;
+            const commentId = row.dataset.commentId;
+            const deleteUrl = `/shop/delete_comment/${commentId}/`;
+            const modalDetails = document.getElementById('modal-details');
+            modalDetails.innerHTML = `
+                <p>작성자: ${username}</p>
+                <p>날짜: ${date}</p>
+                <p>평점: ${rating}</p>
+                <p>${content}</p>
+            `;
+            const deleteForm = document.getElementById('delete-comment-form');
+            deleteForm.action = deleteUrl;
+            document.getElementById('myModal').style.display = "block";
+        }
+    });
+});
+
+function closeModal() {
+    document.getElementById('myModal').style.display = "none";
+}
+
+window.onclick = function(event) {
+    if (event.target == document.getElementById('myModal')) {
+        document.getElementById('myModal').style.display = "none";
+    }
+}
+
+function toggleReplyForm(commentId) {
+    var replyForm = document.getElementById('reply-form-' + commentId);
+    if (replyForm.style.display === 'none' || replyForm.style.display === '') {
+        replyForm.style.display = 'block';
+    } else {
+        replyForm.style.display = 'none';
+    }
+}
+</script>
 {% endblock %}
