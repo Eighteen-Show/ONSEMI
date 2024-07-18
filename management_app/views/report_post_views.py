@@ -102,12 +102,13 @@ def update_report(request, report_id):
     return render(request, 'management_app/update_report.html', {'report': report, 'senior': senior})
 
 # 음성 파일 전처리 함수
-def preprocess_audio(audio_path):
+def preprocess_audio(audio_file):
     # 오디오 파일을 wav로 변환
-    audio = AudioSegment.from_file(audio_path)
-    wav_path = os.path.splitext(audio_path)[0] + '.wav'
-    audio.export(wav_path, format='wav')
-    return wav_path
+    audio = AudioSegment.from_file(audio_file)
+    wav_io = BytesIO()
+    audio.export(wav_io, format='wav')
+    wav_io.seek(0)
+    return wav_io
 
 # 오디오 세그먼트를 전처리하여 이미지로 변환하는 함수
 def preprocess_segment(audio_segment, sample_rate):
@@ -121,25 +122,34 @@ def preprocess_segment(audio_segment, sample_rate):
     librosa.display.specshow(S_DB, sr=sample_rate, x_axis='time', y_axis='mel', ax=ax)
     plt.axis('off')
     plt.margins(0)
-    file_name = 'temp_image.png'
-    plt.savefig(file_name, bbox_inches='tight', pad_inches=0)
+
+    # 이미지를 메모리에 저장
+    img_buffer = BytesIO()
+    plt.savefig(img_buffer, format='png', bbox_inches='tight', pad_inches=0)
     plt.clf()
     plt.close()
+    img_buffer.seek(0)
 
     # 이미지를 로드하고 전처리
-    image = Image.open(file_name).convert('RGB')
+    image = Image.open(img_buffer).convert('RGB')
     image = image.resize((224, 224))
     image_array = np.array(image).astype(np.float32) / 255.0  # 정규화
     image_array = np.expand_dims(image_array, axis=0)  # 배치 차원 추가
 
+    # 이미지 버퍼 닫기
+    img_buffer.close()
+
     return image_array
 
 # 오디오 세그먼트를 예측하는 함수
-def predict_audio_segments(audio_path, model_path):
+def predict_audio_segments(audio_file, model_path):
     # 오디오 파일을 로드 및 변환
-    wav_path = preprocess_audio(audio_path)
-    audio_data, sample_rate = librosa.load(wav_path, sr=48000)
+    wav_io = preprocess_audio(audio_file)
+    audio_data, sample_rate = librosa.load(wav_io, sr=48000)
     
+    # 음성 파일 버퍼 닫기
+    wav_io.close()
+
     # 모델 로드
     model = load_model(model_path)
     
@@ -169,12 +179,10 @@ def analyze_results(predictions):
 def handle_audio_file_upload(request, report):
     if 'audio_file' in request.FILES:
         audio_file = request.FILES['audio_file']
-        audio_path = default_storage.save('tmp/' + audio_file.name, audio_file)
-        audio_path = default_storage.path(audio_path)
 
         # 오디오 파일을 처리하고 예측 수행
-        model_path = "management_app/savemodel_101_all_Dense_32.h5" # 가중치 파일 경로
-        predictions = predict_audio_segments(audio_path, model_path)
+        model_path = "savemodel_101_all_Dense_32.h5" # 가중치 파일 경로
+        predictions = predict_audio_segments(audio_file, model_path)
         result = analyze_results(predictions)
 
         # 예측 결과 저장
