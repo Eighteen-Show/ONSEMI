@@ -188,6 +188,3 @@ def handle_audio_file_upload(request, report):
         # 예측 결과 저장
         report.audio_test_result = result
         report.save()
-
-        # 임시 파일 삭제
-        os.remove(audio_path)
