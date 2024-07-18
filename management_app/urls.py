@@ -26,10 +26,6 @@ urlpatterns = [
     # 업데이트 기능
     path('report/update/<int:report_id>/', report_post_views.update_report, name='update_report'),
 
-    # 미등록 보고서 목록 갱신 -> 무슨 기능일까요 이건 ? 
-    # 이거 수정해야 할 거 같아요...
-    path('report/refresh_pending_reports/', report_post_views.refresh_pending_reports, name='refresh_pending_reports'),
-
     # AJAX
     path('report/list/api/seniors_for_volunteer/<int:volunteer_id>/', report_list_views.seniors_for_volunteer, name='seniors_for_volunteer'),
 ]

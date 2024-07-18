@@ -101,16 +101,6 @@ def update_report(request, report_id):
 
     return render(request, 'management_app/update_report.html', {'report': report, 'senior': senior})
 
-
-# 무슨 기능?
-@login_required
-def refresh_pending_reports(request):
-    pending_cares = Care.objects.filter(care_state='APPROVED').exclude(id__in=Report.objects.values('care_id'))
-    for care in pending_cares:
-        Report.objects.create(care=care, user=request.user, status='미등록')
-
-    return JsonResponse({'message': '미등록 보고서가 생성되었습니다.'})
-
 # 음성 파일 전처리 함수
 def preprocess_audio(audio_path):
     # 오디오 파일을 wav로 변환
